@@ -97,7 +97,7 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
-func extractFlags(volumeContext map[string]string, secret *v1.Secret) (string, string, map[string]string, error) {
+func extractFlags(volumeContext map[string]string, secret *v1.Secret) (string, string, string, map[string]string, error) {
 
 	// Empty argument list
 	flags := make(map[string]string)
@@ -120,7 +120,7 @@ func extractFlags(volumeContext map[string]string, secret *v1.Secret) (string, s
 	}
 
 	if e := validateFlags(flags); e != nil {
-		return "", "", flags, e
+		return "", "", "", flags, e
 	}
 
 	storageType := flags["storageType"]
@@ -228,11 +228,11 @@ func writeConfigFile(storageType string, storageConfig string) (string, error) {
 
 		parts := strings.Split(storageConfig, ":")
 		if len(parts) != 2 {
-			return "", errors.New(fmt.Sprintf("H3 unknown storage config (should be \"host:port\"): %s", storageConfig))
+			return "", status.Errorf(codes.InvalidArgument, fmt.Sprintf("H3 unknown storage config (should be \"host:port\"): %s", storageConfig))
 		}
 		config = append(config, "", "[REDIS]", fmt.Sprintf("host = %s", parts[0]), fmt.Sprintf("port = %s", parts[1]))
 	} else {
-		return "", errors.New(fmt.Sprintf("H3 unknown storage type: %s", storageType))
+		return "", status.Errorf(codes.InvalidArgument, fmt.Sprintf("H3 unknown storage type: %s", storageType))
 	}
 
 	// Write the configuration file
@@ -291,22 +291,23 @@ func Mount(storageType string, storageConfig string, bucket string, targetPath s
 	// h3fuse -o cfg=/path/to/config.ini -o bucket=bucket targetPath
 
 	mountArgs = append(
-		fmt.Sprintf("-o cfg=%s", configFile)
-		fmt.Sprintf("-o bucket=%s", bucket)
+		mountArgs,
+		fmt.Sprintf("-o cfg=%s", configFile),
+		fmt.Sprintf("-o bucket=%s", bucket),
 		targetPath,
 	)
 
 	// Other user supplied flags are ignored
 
 	// create target, os.Mkdirall is noop if it exists
-	err := os.MkdirAll(targetPath, 0750)
+	err = os.MkdirAll(targetPath, 0750)
 	if err != nil {
 		return err
 	}
 
 	klog.Infof("executing mount command cmd=%s, configFile=%s, bucket=%s, targetpath=%s", mountCmd, configFile, bucket, targetPath)
 
-	out, err := exec.Command(mountCmd, mountArgs...).CombinedOutput()
+	out, err = exec.Command(mountCmd, mountArgs...).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("mounting failed: %v cmd: '%s' configFile: '%s' bucket: '%s' targetpath: %s output: %q",
 			err, mountCmd, configFile, bucket, targetPath, string(out))
