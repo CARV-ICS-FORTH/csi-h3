@@ -23,7 +23,7 @@ all: plugin container push
 
 plugin:
 	go mod download
-	CGO_ENABLED=0 GOOS=linux go build -a -gcflags=-trimpath=$(go env GOPATH) -asmflags=-trimpath=$(go env GOPATH) -ldflags '-X github.com/chazapis/csi-h3/pkg/h3.DriverVersion=$(VERSION) -extldflags "-static"' -o _output/csi-h3-plugin ./cmd/csi-h3-plugin
+	CGO_ENABLED=0 GOOS=linux go build -a -gcflags=-trimpath=$(go env GOPATH) -asmflags=-trimpath=$(go env GOPATH) -ldflags '-X github.com/CARV-ICS-FORTH/csi-h3/pkg/h3.DriverVersion=$(VERSION) -extldflags "-static"' -o _output/csi-h3-plugin ./cmd/csi-h3-plugin
 
 container:
 	docker build -t $(IMAGE_TAG) -f ./cmd/csi-h3-plugin/Dockerfile .

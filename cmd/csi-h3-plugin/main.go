@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"github.com/spf13/cobra"
-	"github.com/chazapis/csi-h3/pkg/h3"
+	"github.com/CARV-ICS-FORTH/csi-h3/pkg/h3"
 )
 
 var (
