@@ -296,6 +296,8 @@ func Mount(storageType string, storageConfig string, bucket string, targetPath s
 		fmt.Sprintf("cfg=%s", configFile),
 		"-o",
 		fmt.Sprintf("bucket=%s", bucket),
+		"-o",
+		"allow_other",
 		targetPath,
 	)
 
