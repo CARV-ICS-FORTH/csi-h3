@@ -1,7 +1,7 @@
 
 # CSI H3 mount plugin
 
-* This project is a clone of the [CSI rclone mount plugin](https://github.com/wunderio/csi-rclone), modified for H3. This README has been updated for H3, but if you need more information, please refer to the code of the original module. *
+**This project is a clone of the [CSI rclone mount plugin](https://github.com/wunderio/csi-rclone), modified for H3. This README has been updated for H3, but if you need more information, please refer to the code of the original module.**
 
 This project implements Container Storage Interface (CSI) plugin that allows using [H3](https://github.com/CARV-ICS-FORTH/h3) as the storage backend. H3 mount points and parameters can be configured using Secret or PersistentVolume volumeAttibutes.
 
@@ -79,3 +79,10 @@ make container
 ```
 make push
 ```
+
+## Acknowledgements
+This project has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 825061.
+
+[H2020 evolve](https://www.evolve-h2020.eu/).
+
+<img src="evolve-logo.png" alt="H2020 evolve logo" width="150" height="24.07">
