@@ -292,8 +292,10 @@ func Mount(storageType string, storageConfig string, bucket string, targetPath s
 
 	mountArgs = append(
 		mountArgs,
-		fmt.Sprintf("-o cfg=%s", configFile),
-		fmt.Sprintf("-o bucket=%s", bucket),
+		"-o",
+		fmt.Sprintf("cfg=%s", configFile),
+		"-o",
+		fmt.Sprintf("bucket=%s", bucket),
 		targetPath,
 	)
 
