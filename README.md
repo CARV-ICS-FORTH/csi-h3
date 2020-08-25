@@ -22,8 +22,7 @@ metadata:
   name: h3-secret
 type: Opaque
 stringData:
-  storageType: "redis"
-  storageConfig: "127.0.0.1:6379"
+  storageUri: "redis://127.0.0.1:6379"
   bucket: "b1"
 ```
 
@@ -49,8 +48,7 @@ spec:
     driver: csi-h3
     volumeHandle: data-id
     volumeAttributes:
-      storageType: "redis"
-      storageConfig: "127.0.0.1:6379"
+      storageUri: "redis://127.0.0.1:6379"
       bucket: "b1"
 ```
 

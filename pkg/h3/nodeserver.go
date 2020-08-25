@@ -77,13 +77,13 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	// Load default connection settings from secret
 	secret, e := getSecret("h3-secret")
 
-	storageType, storageConfig, bucket, flags, e := extractFlags(req.GetVolumeContext(), secret)
+	storageUri, bucket, flags, e := extractFlags(req.GetVolumeContext(), secret)
 	if e != nil {
 		klog.Warningf("storage parameter error: %s", e)
 		return nil, e
 	}
 
-	e = Mount(storageType, storageConfig, bucket, targetPath, flags)
+	e = Mount(storageUri, bucket, targetPath, flags)
 	if e != nil {
 		if os.IsPermission(e) {
 			return nil, status.Error(codes.PermissionDenied, e.Error())
@@ -97,7 +97,7 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
-func extractFlags(volumeContext map[string]string, secret *v1.Secret) (string, string, string, map[string]string, error) {
+func extractFlags(volumeContext map[string]string, secret *v1.Secret) (string, string, map[string]string, error) {
 
 	// Empty argument list
 	flags := make(map[string]string)
@@ -120,18 +120,16 @@ func extractFlags(volumeContext map[string]string, secret *v1.Secret) (string, s
 	}
 
 	if e := validateFlags(flags); e != nil {
-		return "", "", "", flags, e
+		return "", "", flags, e
 	}
 
-	storageType := flags["storageType"]
-	storageConfig := flags["storageConfig"]
+	storageUri := flags["storageUri"]
 	bucket := flags["bucket"]
 
-	delete(flags, "storageType")
-	delete(flags, "storageConfig")
+	delete(flags, "storageUri")
 	delete(flags, "bucket")
 
-	return storageType, storageConfig, bucket, flags, nil
+	return storageUri, bucket, flags, nil
 }
 
 func (ns *nodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
@@ -179,11 +177,8 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 }
 
 func validateFlags(flags map[string]string) error {
-	if _, ok := flags["storageType"]; !ok {
-		return status.Errorf(codes.InvalidArgument, "missing volume context value: storageType")
-	}
-	if _, ok := flags["storageConfig"]; !ok {
-		return status.Errorf(codes.InvalidArgument, "missing volume context value: storageConfig")
+	if _, ok := flags["storageUri"]; !ok {
+		return status.Errorf(codes.InvalidArgument, "missing volume context value: storageUri")
 	}
 	if _, ok := flags["bucket"]; !ok {
 		return status.Errorf(codes.InvalidArgument, "missing volume context value: bucket")
@@ -220,56 +215,12 @@ func getSecret(secretName string) (*v1.Secret, error) {
 	return secret, nil
 }
 
-func writeConfigFile(storageType string, storageConfig string) (string, error) {
-	// Convert configuration to file contents
-	config := []string{"[H3]"}
-	if storageType == "redis" {
-		config = append(config, "store = redis")
-
-		parts := strings.Split(storageConfig, ":")
-		if len(parts) != 2 {
-			return "", status.Errorf(codes.InvalidArgument, fmt.Sprintf("H3 unknown storage config (should be \"host:port\"): %s", storageConfig))
-		}
-		config = append(config, "", "[REDIS]", fmt.Sprintf("host = %s", parts[0]), fmt.Sprintf("port = %s", parts[1]))
-	} else {
-		return "", status.Errorf(codes.InvalidArgument, fmt.Sprintf("H3 unknown storage type: %s", storageType))
-	}
-
-	// Write the configuration file
-	configFile := "/tmp/h3config.ini"
-	f, err := os.Create(configFile)
-	if err != nil {
-		f.Close()
-		return "", err
-	}
-	for _, v := range config {
-		fmt.Fprintln(f, v)
-		if err != nil {
-			f.Close()
-			return "", err
-		}
-	}
-	err = f.Close()
-	if err != nil {
-		return "", err
-	}
-	klog.Infof("H3 configuration file written at: %s", configFile)
-
-	return configFile, nil
-}
-
 // Mount routine.
-func Mount(storageType string, storageConfig string, bucket string, targetPath string, flags map[string]string) error {
-	// Create configuration and bucket
-	configFile, err := writeConfigFile(storageType, storageConfig)
-	if err != nil {
-		klog.Errorf(err.Error())
-		return err
-	}
-
+func Mount(storageUri string, bucket string, targetPath string, flags map[string]string) error {
+	// Create bucket
 	command := []string{"h3cli",
-						"--config",
-						configFile,
+						"--storage",
+						storageUri,
 						"mb",
 						fmt.Sprintf("h3://%s", bucket)}
 	klog.Infof("H3 running: %s", strings.Join(command, " "))
@@ -288,12 +239,12 @@ func Mount(storageType string, storageConfig string, bucket string, targetPath s
 	mountCmd := "h3fuse"
 	mountArgs := []string{}
 
-	// h3fuse -o cfg=/path/to/config.ini -o bucket=bucket targetPath
+	// h3fuse -o storage=redis://127.0.0.1:6379 -o bucket=bucket targetPath
 
 	mountArgs = append(
 		mountArgs,
 		"-o",
-		fmt.Sprintf("cfg=%s", configFile),
+		fmt.Sprintf("storage=%s", storageUri),
 		"-o",
 		fmt.Sprintf("bucket=%s", bucket),
 		"-o",
@@ -309,12 +260,12 @@ func Mount(storageType string, storageConfig string, bucket string, targetPath s
 		return err
 	}
 
-	klog.Infof("executing mount command cmd=%s, configFile=%s, bucket=%s, targetpath=%s", mountCmd, configFile, bucket, targetPath)
+	klog.Infof("executing mount command cmd=%s, storage=%s, bucket=%s, targetpath=%s", mountCmd, storageUri, bucket, targetPath)
 
 	out, err = exec.Command(mountCmd, mountArgs...).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("mounting failed: %v cmd: '%s' configFile: '%s' bucket: '%s' targetpath: %s output: %q",
-			err, mountCmd, configFile, bucket, targetPath, string(out))
+		return fmt.Errorf("mounting failed: %v cmd: '%s' storage: '%s' bucket: '%s' targetpath: %s output: %q",
+			err, mountCmd, storageUri, bucket, targetPath, string(out))
 	}
 
 	return nil
