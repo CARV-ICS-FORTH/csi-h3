@@ -27,7 +27,7 @@ spec:
           env:
             - name: ADDRESS
               value: /csi/csi.sock
-          imagePullPolicy: "Always"
+          # imagePullPolicy: "Always"
           volumeMounts:
             - name: socket-dir
               mountPath: /csi
@@ -55,7 +55,7 @@ spec:
                   fieldPath: spec.nodeName
             - name: CSI_ENDPOINT
               value: unix://plugin/csi.sock
-          imagePullPolicy: "Always"
+          # imagePullPolicy: "Always"
           volumeMounts:
             - name: socket-dir
               mountPath: /plugin

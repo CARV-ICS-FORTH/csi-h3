@@ -52,7 +52,7 @@ spec:
       bucket: "b1"
 ```
 
-Deploy example definition
+Deploy example definition (you probably should change the storage URI from `redis://127.0.0.1:6379` to a valid endpoint)
 > `kubectl apply -f example/kubernetes/nginx-example.yaml`
 
 ## Building plugin and creating image
