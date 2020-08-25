@@ -3,16 +3,15 @@
 
 **This project is a clone of the [CSI rclone mount plugin](https://github.com/wunderio/csi-rclone), modified for H3. This README has been updated for H3, but if you need more information, please refer to the code of the original module.**
 
-This project implements Container Storage Interface (CSI) plugin that allows using [H3](https://github.com/CARV-ICS-FORTH/h3) as the storage backend. H3 mount points and parameters can be configured using Secret or PersistentVolume volumeAttibutes.
+This project implements Container Storage Interface (CSI) plugin that allows using [H3](https://github.com/CARV-ICS-FORTH/H3) as the storage backend. H3 mount points and parameters can be configured using Secret or PersistentVolume volumeAttibutes.
 
 ## Kubernetes cluster compatability
 Has only been tested with 1.15.x.
 
-
 ## Installing CSI driver to kubernetes cluster
 TLDR: `kubectl apply -f deploy/kubernetes --username=admin --password=123`
 
-1. Set up storage backend. You can use [Redis](https://redis.io), or any compatible key-value store.
+1. Set up storage backend. You can use [Redis](https://redis.io), or any compatible key-value store (like [Ardb](https://github.com/yinqiwen/ardb)).
 
 2. Configure defaults by pushing secret to kube-system namespace. This is optional if you will always define `volumeAttributes` in PersistentVolume.
 
@@ -58,10 +57,8 @@ spec:
 Deploy example definition
 > `kubectl apply -f example/kubernetes/nginx-example.yaml`
 
-
 ## Building plugin and creating image
 Current code is referencing projects repository on github.com. If you fork the repository, you have to change go includes in several places (use search and replace).
-
 
 1. First push the changed code to remote. The build will use paths from `pkg/` directory.
 
@@ -81,8 +78,4 @@ make push
 ```
 
 ## Acknowledgements
-This project has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 825061.
-
-[H2020 evolve](https://www.evolve-h2020.eu/).
-
-<img src="evolve-logo.png" alt="H2020 evolve logo" width="150" height="24.07">
+This project has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 825061 (EVOLVE - [website](https://www.evolve-h2020.eu>), [CORDIS](https://cordis.europa.eu/project/id/825061)).
