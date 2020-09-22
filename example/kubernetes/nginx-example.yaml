@@ -14,7 +14,7 @@ spec:
     driver: csi-h3
     volumeHandle: data-id
     volumeAttributes:
-      storageUri: "redis://127.0.0.1:6379"
+      storageUri: "redis://redis.default.svc:6379"
       bucket: "b1"
 ---
 apiVersion: v1
@@ -66,3 +66,61 @@ spec:
     protocol: TCP
   selector:
     run: nginx-example
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebrowser-config
+data:
+  filebrowser.json: |
+    {
+      "port": 80,
+      "baseURL": "",
+      "address": "",
+      "log": "stdout",
+      "database": "/database.db",
+      "root": "/data"
+    }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: filebrowser-example
+  labels:
+    run: filebrowser-example
+spec:
+  containers:
+  - image: filebrowser/filebrowser
+    imagePullPolicy: Always
+    name: filebrowser-example
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    args: ["--noauth"]
+    volumeMounts:
+    - name: filebrowser-config-volume
+      mountPath: /.filebrowser.json
+      subPath: filebrowser.json
+    - name: data-h3-example
+      mountPath: /data
+  volumes:
+  - name: filebrowser-config-volume
+    configMap:
+      name: filebrowser-config
+      defaultMode: 0644
+  - name: data-h3-example
+    persistentVolumeClaim:
+      claimName: data-h3-example
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: filebrowser-example
+  labels:
+    run: filebrowser-example
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    run: filebrowser-example
