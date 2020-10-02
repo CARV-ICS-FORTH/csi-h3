@@ -13,9 +13,10 @@
 # limitations under the License.
 
 VERSION=$(shell cat VERSION)
+H3_VERSION=1.0
 REGISTRY_NAME=carvicsforth
-IMAGE_NAME=csi-h3
-IMAGE_TAG=$(REGISTRY_NAME)/$(IMAGE_NAME):$(VERSION)
+BASE_TAG=$(REGISTRY_NAME)/h3:$(H3_VERSION)
+IMAGE_TAG=$(REGISTRY_NAME)/csi-h3:$(VERSION)
 
 .PHONY: all h3-plugin clean h3-container
 
@@ -26,10 +27,13 @@ plugin:
 	CGO_ENABLED=0 GOOS=linux go build -a -gcflags=-trimpath=$(go env GOPATH) -asmflags=-trimpath=$(go env GOPATH) -ldflags '-X github.com/CARV-ICS-FORTH/csi-h3/pkg/h3.DriverVersion=$(VERSION) -extldflags "-static"' -o _output/csi-h3-plugin ./cmd/csi-h3-plugin
 
 container:
-	docker build -t $(IMAGE_TAG) -f ./cmd/csi-h3-plugin/Dockerfile .
+	docker build --build-arg BASE=$(BASE_TAG) -t $(IMAGE_TAG) -f ./cmd/csi-h3-plugin/Dockerfile .
+	docker build --build-arg BASE=$(BASE_TAG)-dev -t $(IMAGE_TAG)-dev -f ./cmd/csi-h3-plugin/Dockerfile .
 
 push:
 	docker push $(IMAGE_TAG)
+	docker push $(IMAGE_TAG)-dev
+
 clean:
 	go clean -r -x
 	-rm -rf _output
