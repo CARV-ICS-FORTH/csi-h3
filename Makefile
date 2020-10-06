@@ -13,7 +13,7 @@
 # limitations under the License.
 
 VERSION=$(shell cat VERSION)
-H3_VERSION=1.0
+H3_VERSION=1.1
 REGISTRY_NAME=carvicsforth
 BASE_TAG=$(REGISTRY_NAME)/h3:$(H3_VERSION)
 IMAGE_TAG=$(REGISTRY_NAME)/csi-h3:$(VERSION)
