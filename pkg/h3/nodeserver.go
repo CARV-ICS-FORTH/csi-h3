@@ -243,6 +243,7 @@ func Mount(storageUri string, bucket string, targetPath string, flags map[string
 
 	mountArgs = append(
 		mountArgs,
+		"-s",
 		"-o",
 		fmt.Sprintf("storage=%s", storageUri),
 		"-o",
