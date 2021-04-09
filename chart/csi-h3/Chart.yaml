@@ -1,0 +1,8 @@
+apiVersion: v2
+name: csi-h3
+description: CSI driver for H3
+type: application
+version: 1.2.0
+kubeVersion: ">= 1.15.0"
+sources:
+- https://github.com/CARV-ICS-FORTH/csi-h3

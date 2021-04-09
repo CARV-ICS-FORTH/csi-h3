@@ -6,11 +6,17 @@
 This project implements a Container Storage Interface (CSI) plugin that allows using [H3](https://github.com/CARV-ICS-FORTH/H3) as a storage backend. H3 parameters can be configured using a `Secret` or `PersistentVolume` `volumeAttributes`.
 
 ## Kubernetes cluster compatability
-Has only been tested with 1.15.x.
+Has been tested with 1.15.x and 1.19.x.
 
 ## Installing the CSI driver to a Kubernetes cluster
 
-Run: `kubectl apply -f deploy/kubernetes`
+CSI H3 is deployed using [Helm](https://helm.sh) (version 3).
+
+Create a namespace for `csi-h3` and install CSI H3:
+```
+kubectl create namespace csi-h3
+helm install -n csi-h3 csi-h3 ./chart/csi-h3
+```
 
 ## Usage and examples
 

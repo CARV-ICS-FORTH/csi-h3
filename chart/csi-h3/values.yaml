@@ -1,0 +1,21 @@
+# Docker image to use.
+image:
+
+# Include access-control rules.
+rbac:
+  create: true
+
+# Base CSI images and versions.
+k8scsi:
+  kubeletPath: "/var/lib/kubelet"
+  baseRepo: "quay.io/k8scsi"
+  images:
+    externalAttacher:
+      image: "csi-attacher"
+      tag: "v2.2.0"
+    nodeDriverRegistrar:
+      image: "csi-node-driver-registrar"
+      tag: "v1.2.0"
+    clusterDriverRegistrar:
+      image: "csi-cluster-driver-registrar"
+      tag: "v1.0.1"
