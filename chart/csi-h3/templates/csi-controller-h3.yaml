@@ -36,20 +36,6 @@ spec:
           volumeMounts:
             - name: socket-dir
               mountPath: /csi
-        - name: csi-cluster-driver-registrar
-          {{- with .Values.k8scsi}}
-          image: "{{ .baseRepo }}/{{ .images.clusterDriverRegistrar.image }}:{{ .images.clusterDriverRegistrar.tag }}"
-          {{- end}}
-          args:
-            - "--v=5"
-            - "--pod-info-mount-version=\"v1\""
-            - "--csi-address=$(ADDRESS)"
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
-          volumeMounts:
-            - name: socket-dir
-              mountPath: /csi
         - name: h3
           image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/csi-h3:v{{ .Chart.Version }} {{- end }}
           args :
